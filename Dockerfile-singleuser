@@ -1,0 +1,44 @@
+# Use the official Ubuntu base image
+FROM ubuntu:latest
+
+# Set environment variables to avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+#  Enable repo to get libpcre3
+RUN apt-get update && \
+    apt-get install -y libreadline-dev libpcre3 libpcre3-dev
+
+# Update package list and install basic utilities
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        apt-utils \
+        curl \
+        wget \
+        vim \
+        ca-certificates \
+        sudo \
+        locales \
+        gdebi && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get upgrade -y
+
+# Set locale
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+
+# Copy MUMPS
+COPY mumps-native-single-user-amd64.deb /tmp/
+
+RUN apt-get update
+
+# Install MUMPS Compiler
+RUN dpkg -i /tmp/mumps-native-single-user-amd64.deb || apt-get install -f -y
+
+RUN mkdir /repo
+WORKDIR /repo
+
+# Set default command
+CMD ["/bin/bash"]
